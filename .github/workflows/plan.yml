@@ -26,7 +26,10 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan.binary > tfplan.txt
+        run: terraform plan -out=tfplan.binary
+
+      - name: Convert Terraform Plan to Text
+        run: terraform show -no-color tfplan.binary > tfplan.txt
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -37,7 +40,6 @@ jobs:
       - name: Comment Terraform Plan
         if: always()
         uses: GetTerminus/terraform-pr-commenter@v1
-
         with:
           commenter_type: plan
           comment_input_file: tfplan.txt
