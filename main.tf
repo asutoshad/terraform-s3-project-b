@@ -24,7 +24,7 @@ provider "aws" {
 data "terraform_remote_state" "project_a" {
   backend = "s3"
   config = {
-    bucket = "project-a-tf-state"
+    bucket = "asutosh-projcet-b"
     key    = "ec2/terraform.tfstate"
     region = "us-east-1"
   }
