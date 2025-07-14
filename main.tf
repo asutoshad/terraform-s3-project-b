@@ -35,6 +35,13 @@ resource "random_id" "suffix" {
 }
 
 
+resource "aws_kms_key" "s3_key" {
+  description              = "Customer-managed KMS key for S3 encryption"
+  deletion_window_in_days = 7
+  enable_key_rotation      = true
+}
+
+
 resource "aws_s3_bucket" "terminus_bucket" {
   bucket        = "terminus-bucket-${random_id.suffix.hex}"
   force_destroy = true
@@ -44,28 +51,13 @@ resource "aws_s3_bucket" "terminus_bucket" {
   }
 }
 
-
-resource "aws_s3_bucket" "log_bucket" {
-  bucket        = "terminus-logs-${random_id.suffix.hex}"
-  force_destroy = true
-}
-
-
-resource "aws_s3_bucket_logging" "bucket_logging" {
-  bucket        = aws_s3_bucket.terminus_bucket.id
-  target_bucket = aws_s3_bucket.log_bucket.id
-  target_prefix = "log/"
-}
-
-
-resource "aws_s3_bucket_versioning" "versioning" {
+resource "aws_s3_bucket_versioning" "terminus_bucket_versioning" {
   bucket = aws_s3_bucket.terminus_bucket.id
 
   versioning_configuration {
     status = "Enabled"
   }
 }
-
 
 resource "aws_s3_bucket_public_access_block" "terminus_bucket_public_access" {
   bucket = aws_s3_bucket.terminus_bucket.id
@@ -76,15 +68,7 @@ resource "aws_s3_bucket_public_access_block" "terminus_bucket_public_access" {
   restrict_public_buckets = true
 }
 
-
-resource "aws_kms_key" "s3_key" {
-  description             = "Customer-managed KMS key for S3 encryption"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
-}
-
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "sse" {
+resource "aws_s3_bucket_server_side_encryption_configuration" "terminus_bucket_sse" {
   bucket = aws_s3_bucket.terminus_bucket.id
 
   rule {
@@ -93,6 +77,53 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "sse" {
       kms_master_key_id = aws_kms_key.s3_key.arn
     }
   }
+}
+
+
+resource "aws_s3_bucket" "log_bucket" {
+  bucket        = "terminus-logs-${random_id.suffix.hex}"
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_versioning" "log_bucket_versioning" {
+  bucket = aws_s3_bucket.log_bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "log_bucket_public_access" {
+  bucket = aws_s3_bucket.log_bucket.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket_sse" {
+  bucket = aws_s3_bucket.log_bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3_key.arn
+    }
+  }
+}
+
+resource "aws_s3_bucket_logging" "log_bucket_logging" {
+  bucket        = aws_s3_bucket.log_bucket.id
+  target_bucket = aws_s3_bucket.log_bucket.id
+  target_prefix = "self-log/"
+}
+
+
+resource "aws_s3_bucket_logging" "bucket_logging" {
+  bucket        = aws_s3_bucket.terminus_bucket.id
+  target_bucket = aws_s3_bucket.log_bucket.id
+  target_prefix = "log/"
 }
 
 
