@@ -9,7 +9,7 @@ terraform {
   required_version = ">= 1.3.0"
 
   backend "s3" {
-    bucket = "asutosh-project-b-20250714" 
+    bucket = "asutosh-project-b-20250714"
     key    = "s3/terraform.tfstate"
     region = "us-east-1"
   }
@@ -21,8 +21,6 @@ provider "aws" {
   secret_key = var.aws_secret_key
 }
 
-
-
 data "terraform_remote_state" "project_a" {
   backend = "s3"
   config = {
@@ -30,6 +28,10 @@ data "terraform_remote_state" "project_a" {
     key    = "ec2/terraform.tfstate"
     region = "us-east-1"
   }
+}
+
+resource "random_id" "suffix" {
+  byte_length = 4
 }
 
 resource "aws_s3_bucket" "terminus_bucket" {
@@ -49,11 +51,26 @@ resource "aws_s3_bucket_versioning" "versioning" {
   }
 }
 
-resource "random_id" "suffix" {
-  byte_length = 4
+# Public Access Block to restrict public access
+resource "aws_s3_bucket_public_access_block" "terminus_bucket_public_access" {
+  bucket = aws_s3_bucket.terminus_bucket.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
+# Server-side encryption using AES256
+resource "aws_s3_bucket_server_side_encryption_configuration" "sse" {
+  bucket = aws_s3_bucket.terminus_bucket.id
 
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
 
 resource "aws_s3_bucket_policy" "bucket_policy" {
   bucket = aws_s3_bucket.terminus_bucket.id
@@ -73,7 +90,3 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
     ]
   })
 }
-
-  
-
-  
