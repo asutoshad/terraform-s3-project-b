@@ -9,11 +9,13 @@ terraform {
   required_version = ">= 1.3.0"
 
   backend "s3" {
-    bucket = "project-b-tf-state"
+    bucket = "asutosh-project-b-20250714" 
     key    = "s3/terraform.tfstate"
     region = "us-east-1"
   }
 }
+
+
 
 provider "aws" {
   region     = "us-east-1"
@@ -24,7 +26,7 @@ provider "aws" {
 data "terraform_remote_state" "project_a" {
   backend = "s3"
   config = {
-    bucket = "asutosh-projcet-b"
+    bucket = "asutosh-project-a-tf-state"
     key    = "ec2/terraform.tfstate"
     region = "us-east-1"
   }
