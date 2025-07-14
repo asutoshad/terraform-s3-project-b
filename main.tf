@@ -34,6 +34,7 @@ resource "random_id" "suffix" {
   byte_length = 4
 }
 
+
 resource "aws_s3_bucket" "terminus_bucket" {
   bucket        = "terminus-bucket-${random_id.suffix.hex}"
   force_destroy = true
@@ -43,6 +44,20 @@ resource "aws_s3_bucket" "terminus_bucket" {
   }
 }
 
+
+resource "aws_s3_bucket" "log_bucket" {
+  bucket        = "terminus-logs-${random_id.suffix.hex}"
+  force_destroy = true
+}
+
+
+resource "aws_s3_bucket_logging" "bucket_logging" {
+  bucket        = aws_s3_bucket.terminus_bucket.id
+  target_bucket = aws_s3_bucket.log_bucket.id
+  target_prefix = "log/"
+}
+
+
 resource "aws_s3_bucket_versioning" "versioning" {
   bucket = aws_s3_bucket.terminus_bucket.id
 
@@ -51,7 +66,7 @@ resource "aws_s3_bucket_versioning" "versioning" {
   }
 }
 
-# Public Access Block to restrict public access
+
 resource "aws_s3_bucket_public_access_block" "terminus_bucket_public_access" {
   bucket = aws_s3_bucket.terminus_bucket.id
 
@@ -61,16 +76,25 @@ resource "aws_s3_bucket_public_access_block" "terminus_bucket_public_access" {
   restrict_public_buckets = true
 }
 
-# Server-side encryption using AES256
+
+resource "aws_kms_key" "s3_key" {
+  description             = "Customer-managed KMS key for S3 encryption"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+}
+
+
 resource "aws_s3_bucket_server_side_encryption_configuration" "sse" {
   bucket = aws_s3_bucket.terminus_bucket.id
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3_key.arn
     }
   }
 }
+
 
 resource "aws_s3_bucket_policy" "bucket_policy" {
   bucket = aws_s3_bucket.terminus_bucket.id
