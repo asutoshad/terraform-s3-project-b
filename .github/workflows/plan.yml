@@ -36,7 +36,8 @@ jobs:
 
       - name: Comment Terraform Plan
         if: always()
-        uses: GetTerminus/terraform-pr-commenter@main
+        uses: GetTerminus/terraform-pr-commenter@v1
+
         with:
           commenter_type: plan
           comment_input_file: tfplan.txt

@@ -34,7 +34,8 @@ jobs:
 
       - name: Comment TFLint Results
         if: failure()
-        uses: GetTerminus/terraform-pr-commenter@main
+        uses: GetTerminus/terraform-pr-commenter@v1
+
         with:
           commenter_type: tflint
 
@@ -43,7 +44,8 @@ jobs:
 
       - name: Comment Fmt Results
         if: failure()
-        uses: GetTerminus/terraform-pr-commenter@main
+        uses: GetTerminus/terraform-pr-commenter@v1
+
         with:
           commenter_type: fmt
 
@@ -52,6 +54,7 @@ jobs:
 
       - name: Comment Validate Results
         if: failure()
-        uses: GetTerminus/terraform-pr-commenter@main
+        uses: GetTerminus/terraform-pr-commenter@v1
+
         with:
           commenter_type: validate
