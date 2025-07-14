@@ -48,7 +48,7 @@ jobs:
       - name: Comment Terraform Plan
         uses: GetTerminus/terraform-pr-commenter@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         with:
           commenter_type: plan
           commenter_input: ${{ steps.read_plan.outputs.plan_summary }}
